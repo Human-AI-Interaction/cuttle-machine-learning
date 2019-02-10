@@ -9,6 +9,7 @@ class Game:
 		self.scrap = []
 		self.turn = 0
 		self.oneOff = None
+		self.log = []
 
 		# Initialize deck
 		for i in range(4):
@@ -28,9 +29,16 @@ class Game:
 
 
 	def print(self):
-		for i, player in enumerate(self.players):
-			print("\nPlayer %s:" %i)
-			player.print()
+		if len(self.log) > 0:
+			print(self.log[-1])
+		print("Player 0:")
+		self.players[0].print()
+		print("\nPlayer 1:")
+		self.players[1].print()
+		print("\n")
+		# for i, player in enumerate(self.players):
+		# 	print("\nPlayer %s:" %i)
+		# 	player.print()
 
 	# Returns None unless game is over, then returns index of winner
 	def winner(self):
