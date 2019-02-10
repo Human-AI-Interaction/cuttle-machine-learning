@@ -21,6 +21,7 @@ class Player:
 		self.printHand()
 		self.printField()
 
+	# Returns how many queens player has on field
 	def queenCount(self):
 		res = 0
 		for card in self.faceCards:
@@ -28,6 +29,7 @@ class Player:
 				res += 1
 		return res
 
+	# Returns how many kings player has on field
 	def kingCount(self):
 		res = 0
 		for card in self.faceCards:
@@ -35,12 +37,14 @@ class Player:
 				res += 1
 		return res
 
+	# Returns player's current point total
 	def totalPoints(self):
 		res = 0
 		for card in self.points:
 			res += card.rank
 		return res
 
+	# Returns whether player has won (boolean)
 	def wins(self):
 		if self.kingCount() == 0:
 			return self.totalPoints() >= 21

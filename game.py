@@ -32,6 +32,7 @@ class Game:
 			print("\nPlayer %s:" %i)
 			player.print()
 
+	# Returns None unless game is over, then returns index of winner
 	def winner(self):
 		res = None
 		if self.players[0].wins():
@@ -39,9 +40,6 @@ class Game:
 		elif self.players[1].wins():
 			res = 1
 		return res
-
-# blarg = Game()
-# blarg.print()
 
 
 

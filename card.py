@@ -4,6 +4,7 @@ class Card:
 		self.rank = rank
 		self.jacks = []
 
+	# Return string name of card
 	def name(self):
 		if self.suit == 0:
 			suit = " of Clubs"

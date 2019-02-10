@@ -79,14 +79,6 @@ def playRound(gameHistory):
 gameHistory = CompleteGame() # Class to stor list of game states until win or stalemate
 gameHistory.gameStates.append(Game()) # Create initial game at beginning of list
 
-# playRound(gameHistory)
-# gameHistory.gameStates[-1].print()
-# playRound(gameHistory)
-# gameHistory.gameStates[-1].print()
-# playRound(gameHistory)
-# gameHistory.gameStates[-1].print()
-# playRound(gameHistory)
-# gameHistory.gameStates[-1].print()
 
 # Play until there is a winner
 while gameHistory.gameStates[-1].winner() == None:
@@ -94,15 +86,11 @@ while gameHistory.gameStates[-1].winner() == None:
 # Print game history
 gameHistory.print()
 
-# moves = findPossibleMoves(firstGame, 0)
-# print("\ngot %s moves" %len(moves))
-# print("Possible moves:\n")
-# for i, move in enumerate(moves):
-# 	print("\nGame %s" %i)
-# 	move.print()
 
 
-# Store results on disk
+#########################
+# Store results on disk #
+#########################
 # with open('./game.pkl', 'rb') as f:
 # 	gameList = pickle.load(f)
 # 	gameList.append(firstGame)

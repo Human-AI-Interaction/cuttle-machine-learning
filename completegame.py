@@ -1,3 +1,4 @@
+# Class stores complete history of a game
 class CompleteGame:
 	def __init__(self):
 		self.gameStates = []
