@@ -78,8 +78,6 @@ def playRound(gameHistory):
 
 gameHistory = CompleteGame() # Class to stor list of game states until win or stalemate
 gameHistory.gameStates.append(Game()) # Create initial game at beginning of list
-print("Initial Game State:")
-gameHistory.gameStates[0].print()
 
 # playRound(gameHistory)
 # gameHistory.gameStates[-1].print()
@@ -93,7 +91,8 @@ gameHistory.gameStates[0].print()
 # Play until there is a winner
 while gameHistory.gameStates[-1].winner() == None:
 	playRound(gameHistory)
-	gameHistory.gameStates[-1].print()
+# Print game history
+gameHistory.print()
 
 # moves = findPossibleMoves(firstGame, 0)
 # print("\ngot %s moves" %len(moves))
