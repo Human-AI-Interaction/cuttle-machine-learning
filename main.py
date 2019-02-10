@@ -5,6 +5,43 @@ from game import Game
 from completegame import CompleteGame
 
 
+# Returns the result of playing a given card as a oneOff
+	# Returns array of possible results (in case card can be played multiple ways)
+def playCardAsOneOff(originalGame, pIndex, cIndex):
+	res = []
+	game = deepcopy(originalGame)
+	card = game.players[pIndex].hand[cIndex]
+	# Move all points to scrap
+	if card.rank == 1:
+		game.scrap += game.players[0].points
+		game.scrap += game.players[1].points
+		game.players[0].points = []
+		game.players[1].points = []
+		game.log.append("Player %s destroys all points with the %s" %(pIndex, card.name()))
+		res.append(game)
+	elif card.rank == 2:
+		pass
+	elif card.rank == 3:
+		pass
+	elif card.rank == 4:
+		pass
+	elif card.rank == 5:
+		pass
+	elif card.rank == 6:
+		game.scrap += game.players[0].faceCards
+		game.scrap += game.players[1].faceCards
+		game.players[0].faceCards = []
+		game.players[1].faceCards = []
+		game.log.append("Player %s destroys all face cards with the %s" %(pIndex, card.name()))
+		res.append(game)
+		pass
+	elif card.rank == 7:
+		pass
+	elif card.rank == 9:
+		pass
+	return res
+
+
 # Returns a list of all gamestates resulting from all possible moves
 #      that a given player could make this turn
 def findPossibleMoves(originalGame, pIndex):
@@ -42,6 +79,9 @@ def findPossibleMoves(originalGame, pIndex):
 					scuttleResult.scrap.append(scuttleResult.players[pIndex].hand.pop(i)) # Move played card to scrap
 					scuttleResult.log.append("Player %s scuttled the %s with the %s" %(pIndex, pointCard.name(), card.name()))
 					res.append(deepcopy(scuttleResult))
+
+			# Play as oneOff
+			res += playCardAsOneOff(originalGame, pIndex, i)
 
 		# Play king or queen
 		elif card.rank > 11:
@@ -88,21 +128,35 @@ def playGame():
 		playRound(gameHistory)
 	return gameHistory
 
+# Plays n games and returns list of CompleteGames
+def playNGames(n):
+	res = []
+	for i in range(n):
+		res.append(playGame())
+	return res
 
-firstFullGame = playGame()
-firstFullGame.print()
 
 
 
+gameList = []
 
-#########################
-# Store results on disk #
-#########################
-# with open('./game.pkl', 'rb') as f:
-# 	gameList = pickle.load(f)
-# 	gameList.append(firstGame)
-# 	for game in gameList:
-# 		game.print()
+##############################
+# Loading and saving results #
+##############################
+# Read old list of complete games
+with open('./game.pkl', 'rb') as f:
+	gameList = pickle.load(f)
+	# gameList.append(firstGame)
+	# for game in gameList:
+	# 	game.print()
 
-# with open('./game.pkl', 'wb') as f:
-# 	pickle.dump(gameList, f)
+# Add new games 
+gameList += playNGames(1) #This param sets how many games are added to list
+print("Saved a total of %s games" %len(gameList))
+for game in gameList:
+	print("\n\n===================================================")
+	game.print()
+
+# Save results to disk
+with open('./game.pkl', 'wb') as f:
+	pickle.dump(gameList, f)
