@@ -29,8 +29,16 @@ class Game:
 
 	def print(self):
 		for i, player in enumerate(self.players):
-			print("\nPlayer %s's hand:" %i)
-			player.printHand()
+			print("\nPlayer %s:" %i)
+			player.print()
+
+	def winner(self):
+		res = None
+		if self.players[0].wins():
+			res = 0
+		elif self.players[1].wins():
+			res = 1
+		return res
 
 # blarg = Game()
 # blarg.print()
