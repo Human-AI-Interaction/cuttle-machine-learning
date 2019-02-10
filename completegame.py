@@ -3,6 +3,7 @@ from game import Game
 class CompleteGame:
 	def __init__(self):
 		self.gameStates = [Game()]
+		self.result = None
 
 	def print(self):
 		print("Initial Game State:")

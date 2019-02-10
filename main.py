@@ -4,7 +4,6 @@ import pickle
 from game import Game
 from completegame import CompleteGame
 
-
 # Returns the result of playing a given card as a oneOff
 	# Returns array of possible results (in case card can be played multiple ways)
 def playCardAsOneOff(originalGame, pIndex, cIndex):
@@ -45,7 +44,7 @@ def playCardAsOneOff(originalGame, pIndex, cIndex):
 # Returns a list of all gamestates resulting from all possible moves
 #      that a given player could make this turn
 def findPossibleMoves(originalGame, pIndex):
-	res =  [] # List of possible moves
+	res =  [] # List of gamestates resulting from possible moves
 	game = deepcopy(originalGame) #Copy original game to avoid overwriting it
 
 	# Draw
@@ -55,18 +54,16 @@ def findPossibleMoves(originalGame, pIndex):
 		res.append(deepcopy(game))
 		game = deepcopy(originalGame)
 
-	# Loop through each card in hand and add all legal moves makable with that card
+	# Loop through each card in hand and add all legal moves makeable with that card
 	for i, card in enumerate(game.players[pIndex].hand):
 		if card.rank < 11:
-			# Play to field
+			# Play points
 			game = deepcopy(originalGame)
 			name = card.name()
 			lenHand = len(game.players[pIndex].hand)
 			game.players[pIndex].points.append(game.players[pIndex].hand.pop(i))
 			game.log.append("Player %s played the %s for points" %(pIndex, card.name()))
-			# game.print()
 			res.append(deepcopy(game))
-
 
 			# Scuttle
 			# For each opponent's point card, if scuttle is legal, add it to list of possible moves
@@ -89,6 +86,7 @@ def findPossibleMoves(originalGame, pIndex):
 			game.players[pIndex].faceCards.append(game.players[pIndex].hand.pop(i))
 			game.log.append("Player %s played the %s" %(pIndex, card.name()))
 			res.append(deepcopy(game))
+
 		# Play jack
 		elif card.rank == 11 and game.players[(pIndex + 1) % 2].queenCount() == 0:
 			game = deepcopy(originalGame)
@@ -110,13 +108,19 @@ def chooseRandomMove(moves):
 # Modifies the gameHistory param to append new gamestates
 def playRound(gameHistory):
 	moves = findPossibleMoves(gameHistory.gameStates[-1], 0)
-	chosenMove = chooseRandomMove(moves)
-	gameHistory.gameStates.append(chosenMove)
-
-	if gameHistory.gameStates[-1].winner() == None:
-		moves = findPossibleMoves(chosenMove, 1)
+	stalemate = False
+	if len(moves) > 0:
 		chosenMove = chooseRandomMove(moves)
 		gameHistory.gameStates.append(chosenMove)
+	else:
+		stalemate = True
+	if gameHistory.gameStates[-1].winner() == None:
+		moves = findPossibleMoves(chosenMove, 1)
+		if len(moves) > 0:
+			chosenMove = chooseRandomMove(moves)
+			gameHistory.gameStates.append(chosenMove)
+		elif stalemate:
+			gameHistory.result = "Stalemate"
 
 	return gameHistory
 
@@ -124,8 +128,12 @@ def playRound(gameHistory):
 # Returns complete game object with full game history
 def playGame():
 	gameHistory = CompleteGame()
-	while gameHistory.winner() == None:
+	# Play until there is a winner or staelemate
+	while gameHistory.winner() == None and gameHistory.result == None:
 		playRound(gameHistory)
+	# If no stalemate, set the result to index of winner
+	if gameHistory.result == None:
+		gameHistory.result = gameHistory.winner()
 	return gameHistory
 
 # Plays n games and returns list of CompleteGames
@@ -146,9 +154,6 @@ gameList = []
 # Read old list of complete games
 with open('./game.pkl', 'rb') as f:
 	gameList = pickle.load(f)
-	# gameList.append(firstGame)
-	# for game in gameList:
-	# 	game.print()
 
 # Add new games 
 gameList += playNGames(1) #This param sets how many games are added to list
