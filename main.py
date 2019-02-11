@@ -3,6 +3,7 @@ from random import randint
 import pickle
 from game import Game
 from completegame import CompleteGame
+from timeit import default_timer as timer
 
 # Returns the result of playing a given card as a oneOff
 	# Returns array of possible results (in case card can be played multiple ways)
@@ -26,10 +27,15 @@ def playCardAsOneOff(originalGame, pIndex, cIndex):
 		pass
 	# Draw 2 cards
 	elif card.rank == 5:
-		game.scrap.append(game.players[pIndex].hand.pop(cIndex))
-		game.players[pIndex].hand.append(game.deck.pop(-1))
-		game.players[pIndex].hand.append(game.deck.pop(-1))
-		game.log.append("Player %s draws two cards with the %s" %(pIndex, card.name()))
+		if len(game.deck) > 0:
+			game.scrap.append(game.players[pIndex].hand.pop(cIndex))
+			game.players[pIndex].hand.append(game.deck.pop(-1))
+			if len(game.deck) > 0:
+				game.players[pIndex].hand.append(game.deck.pop(-1))
+				game.log.append("Player %s draws two cards with the %s" %(pIndex, card.name()))
+			else:
+				game.log.append("Player %s draws ONE card with the %s" %s(pIndex, card.name()))
+			res.append(game)
 	elif card.rank == 6:
 		game.scrap += game.players[0].faceCards
 		game.scrap += game.players[1].faceCards
@@ -111,6 +117,7 @@ def chooseRandomMove(moves):
 # Plays two turns of a game (each player plays once)
 # Modifies the gameHistory param to append new gamestates
 def playRound(gameHistory):
+	chosenMove = gameHistory.gameStates[-1] # Gamestate before round
 	moves = findPossibleMoves(gameHistory.gameStates[-1], 0)
 	stalemate = False
 	if len(moves) > 0:
@@ -160,11 +167,17 @@ with open('./game.pkl', 'rb') as f:
 	gameList = pickle.load(f)
 
 # Add new games 
-gameList += playNGames(1) #This param sets how many games are added to list
+start = timer()
+n = 100
+gameList += playNGames(588) #This param sets how many games are added to list
+end = timer()
+print("Ran %s games in %s" %(n, end-start))
 print("Saved a total of %s games" %len(gameList))
-for game in gameList:
-	print("\n\n===================================================")
-	game.print()
+# for game in gameList:
+# 	print("\n\n===================================================")
+# 	game.print()
+
+gameList[-1].print()
 
 # Save results to disk
 with open('./game.pkl', 'wb') as f:
