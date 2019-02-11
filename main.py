@@ -24,8 +24,12 @@ def playCardAsOneOff(originalGame, pIndex, cIndex):
 		pass
 	elif card.rank == 4:
 		pass
+	# Draw 2 cards
 	elif card.rank == 5:
-		pass
+		game.scrap.append(game.players[pIndex].hand.pop(cIndex))
+		game.players[pIndex].hand.append(game.deck.pop(-1))
+		game.players[pIndex].hand.append(game.deck.pop(-1))
+		game.log.append("Player %s draws two cards with the %s" %(pIndex, card.name()))
 	elif card.rank == 6:
 		game.scrap += game.players[0].faceCards
 		game.scrap += game.players[1].faceCards
