@@ -31,6 +31,7 @@ class Game:
 	def print(self):
 		if len(self.log) > 0:
 			print(self.log[-1])
+		print("%s cards in deck, %s cards in scrap" %(len(self.deck), len(self.scrap)))
 		print("Player 0:")
 		self.players[0].print()
 		print("\nPlayer 1:")

@@ -44,6 +44,21 @@ class Player:
 			res += card.rank
 		return res
 
+	# Returns number of two's in hand
+	def twosInHand(self):
+		res = 0
+		for card in self.hand:
+			if card.rank == 2:
+				res += 1
+		return res
+
+	def indexOfTwo(self):
+		res = None
+		for i, card in enumerate(self.hand):
+			if card.rank == 2:
+				res = i
+		return res
+
 	# Returns whether player has won (boolean)
 	def wins(self):
 		if self.kingCount() == 0:

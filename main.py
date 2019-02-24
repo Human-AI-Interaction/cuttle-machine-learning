@@ -9,45 +9,78 @@ from timeit import default_timer as timer
 	# Returns array of possible results (in case card can be played multiple ways)
 def playCardAsOneOff(originalGame, pIndex, cIndex):
 	res = []
-	game = deepcopy(originalGame)
-	card = game.players[pIndex].hand[cIndex]
-	# Move all points to scrap
-	if card.rank == 1:
-		game.scrap += game.players[0].points
-		game.scrap += game.players[1].points
-		game.players[0].points = []
-		game.players[1].points = []
-		game.log.append("Player %s destroys all points with the %s" %(pIndex, card.name()))
-		res.append(game)
-	elif card.rank == 2:
-		pass
-	elif card.rank == 3:
-		pass
-	elif card.rank == 4:
-		pass
-	# Draw 2 cards
-	elif card.rank == 5:
-		if len(game.deck) > 0:
-			game.scrap.append(game.players[pIndex].hand.pop(cIndex))
-			game.players[pIndex].hand.append(game.deck.pop(-1))
-			if len(game.deck) > 0:
-				game.players[pIndex].hand.append(game.deck.pop(-1))
-				game.log.append("Player %s draws two cards with the %s" %(pIndex, card.name()))
-			else:
-				game.log.append("Player %s draws ONE card with the %s" %s(pIndex, card.name()))
+	counterResult = deepcopy(originalGame)
+	card = counterResult.players[pIndex].hand.pop(cIndex)
+	counterResult.scrap.append(card)
+	worlds_where_oneOff_resovlves = [deepcopy(counterResult)]
+	# Add cases where twos are played as possible results
+	twoIndex = counterResult.players[(pIndex + 1) % 2].indexOfTwo()
+	if counterResult.players[pIndex].queenCount == 0 and twoIndex != None:
+		# counterResult.scrap.append(counterResult.players[pIndex].hand.pop(cIndex))
+		counterResult.scrap.append(counterResult.players[(pIndex + 1) % 2].hand.pop(twoIndex))
+		counterResult.log.append("Player %s plays the %s as a oneOff but is countered by the %s" %(pIndex, card.name(), counterResult.scrap[-1]))
+		res.append(deepcopy(counterResult))
+
+		# Add cases where player counters back
+		twoIndex = counterResult.players[pIndex].indexOfTwo()
+		if counterResult.players[(pIndex + 1) % 2].queenCount() == 0 and twoIndex != None:
+			counterResult.scrap.append(counterResult.players[pIndex].hand.pop(twoIndex))
+			counterResult.log.append("Player %s counters back with the %s" %(pIndex, counterResult.scrap[-1].name()))
+			worlds_where_oneOff_resovlves.append(deepcopy(counterResult))
+
+
+			# Opponent counters back again (3 twos stacked)
+			twoIndex = counterResult.players[(pIndex + 1) % 2].indexOfTwo()
+			if twoIndex != None:
+				counterResult.scrap.append(counterResult.players[(pIndex + 1) % 2].hand.pop(twoIndex))
+				counterResult.log.append("Player %s stacks 3rd counter with the %s" %(pIndex, counterResult.scrap[-1].name()))
+				res.append(deepcopy(counterResult))
+
+			# Player makes final counter (all 4 2's) to resolve oneOff
+				twoIndex = counterResult.players[pIndex].indexOfTwo()
+				if twoIndex != None:
+					counterResult.scrap.append(game.players[pIndex].hand.pop(twoIndex))
+					counterResult.log.append("Player %s makes final counter to resolve the %s with their %s" %(pIndex, card.name(), counterResult.scrap[-1].name()))
+					worlds_where_oneOff_resovlves.append(counterResult)
+
+	for game in worlds_where_oneOff_resovlves:
+		# Move all points to scrap
+		if card.rank == 1:
+			game.scrap += game.players[0].points
+			game.scrap += game.players[1].points
+			game.players[0].points = []
+			game.players[1].points = []
+			game.log.append("Player %s destroys all points with the %s" %(pIndex, card.name()))
 			res.append(game)
-	elif card.rank == 6:
-		game.scrap += game.players[0].faceCards
-		game.scrap += game.players[1].faceCards
-		game.players[0].faceCards = []
-		game.players[1].faceCards = []
-		game.log.append("Player %s destroys all face cards with the %s" %(pIndex, card.name()))
-		res.append(game)
-		pass
-	elif card.rank == 7:
-		pass
-	elif card.rank == 9:
-		pass
+		elif card.rank == 2:
+			pass
+		elif card.rank == 3:
+			pass
+		elif card.rank == 4:
+			pass
+		# Draw 2 cards
+		elif card.rank == 5:
+			if len(game.deck) > 0:
+				# game.scrap.append(game.players[pIndex].hand.pop(cIndex))
+				game.players[pIndex].hand.append(game.deck.pop(-1))
+				if len(game.deck) > 0:
+					game.players[pIndex].hand.append(game.deck.pop(-1))
+					game.log.append("Player %s draws two cards with the %s" %(pIndex, card.name()))
+				else:
+					game.log.append("Player %s draws ONE card with the %s" %s(pIndex, card.name()))
+				res.append(game)
+		elif card.rank == 6:
+			game.scrap += game.players[0].faceCards
+			game.scrap += game.players[1].faceCards
+			game.players[0].faceCards = []
+			game.players[1].faceCards = []
+			game.log.append("Player %s destroys all face cards with the %s" %(pIndex, card.name()))
+			res.append(game)
+			pass
+		elif card.rank == 7:
+			pass
+		elif card.rank == 9:
+			pass
 	return res
 
 
@@ -154,7 +187,22 @@ def playNGames(n):
 		res.append(playGame())
 	return res
 
+# Plays one game for n turns and returns resulting CompleteGame
+def playNTurns(n):
+	gameHistory = CompleteGame()
+	for i in range(n):
+		playRound(gameHistory)
+	return gameHistory
 
+# Play partially completle game until win or stalemate
+def finishGame(gameHistory):
+	# Play until there is a winner or staelemate
+	while gameHistory.winner() == None and gameHistory.result == None:
+		playRound(gameHistory)
+	# If no stalemate, set the result to index of winner
+	if gameHistory.result == None:
+		gameHistory.result = gameHistory.winner()
+	return gameHistory
 
 
 gameList = []
@@ -168,8 +216,8 @@ with open('./game.pkl', 'rb') as f:
 
 # Add new games 
 start = timer()
-n = 100
-gameList += playNGames(588) #This param sets how many games are added to list
+n = 1
+gameList += playNGames(n) #This param sets how many games are added to list
 end = timer()
 print("Ran %s games in %s" %(n, end-start))
 print("Saved a total of %s games" %len(gameList))
