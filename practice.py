@@ -4,7 +4,7 @@ from timeit import default_timer as timer
 start = timer()
 
 x = 2
-y = 15
+y = 20
 data = GamePlayedManyTimes(x, y)
 
 

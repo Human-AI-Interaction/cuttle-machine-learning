@@ -76,8 +76,15 @@ def playCardAsOneOff(originalGame, pIndex, cIndex):
 				res.append(twoResult)
 		elif card.rank == 3:
 			pass
-		elif card.rank == 4:
-			pass
+		# Opponent discards two cards
+		elif card.rank == 4 and len(game.players[(pIndex + 1) % 2].hand) > 0:
+			game.scrap.append(game.players[(pIndex + 1) % 2].hand.pop())
+			if len(game.players[(pIndex + 1) % 2].hand) > 0:
+				game.scrap.append(game.players[(pIndex + 1) % 2].hand.pop())
+				game.log.append("Player %s makes Player %s discard the %s and %s with the %s" %(pIndex, (pIndex+1)%2, game.scrap[-2].name(), game.scrap[-1].name(), card.name()))
+			else:
+				game.log.append("Player %s makes Player %s discard the %s with the %s" %(pIndex, (pIndex+1)%2, game.scrap[-1].name(), card.name()))
+			res.append(game)
 		# Draw 2 cards
 		elif card.rank == 5:
 			if len(game.deck) > 0:
