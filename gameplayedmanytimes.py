@@ -64,7 +64,7 @@ def playCardAsOneOff(originalGame, pIndex, cIndex):
 				for index, target in enumerate(game.players[(pIndex + 1) % 2].points):
 					if len(target.jacks) > 0:
 						twoResult = deepcopy(game)
-						twoResult.scrap.append(game.players[(pIndex + 1) % 2].points[index].jacks.pop()) #Move jack to scrap
+						twoResult.scrap.append(twoResult.players[(pIndex + 1) % 2].points[index].jacks.pop()) #Move jack to scrap
 						twoResult.players[pIndex].points.append(twoResult.players[(pIndex + 1) % 2].points.pop(index)) #Switch control of point card
 						twoResult.log.append("Player %s destroys Player %s's %s with the %s and regains control of the %s" %(pIndex, (pIndex+1)%2, twoResult.scrap[-1].name(), card.name(), target.name()))
 						res.append(twoResult)
@@ -112,8 +112,38 @@ def playCardAsOneOff(originalGame, pIndex, cIndex):
 			pass
 		elif card.rank == 7:
 			pass
+		# Return a card to opponent's hand (they can't play it next turn)
 		elif card.rank == 9:
-			pass
+			queenCount = game.players[(pIndex + 1) % 2].queenCount()
+			if queenCount == 0:
+				for index, target in enumerate(game.players[(pIndex + 1) % 2].faceCards):
+					nineResult = deepcopy(game)
+					nineResult.players[(pIndex + 1) % 2].hand.append(nineResult.players[(pIndex + 1) % 2].faceCards.pop(index))
+					nineResult.players[(pIndex + 1) % 2].hand[-1].frozen = True
+					nineResult.log.append("Player %s returns Player %s's %s to her hand with the %s" %(pIndex, (pIndex+1)%2, target.name(), card.name()))
+					res.append(nineResult)
+				for index, target in enumerate(game.players[(pIndex + 1) % 2].points):
+					if target.rank == 10 or (target.rank == 9 and card.suit > target.suit):
+						nineResult = deepcopy(game)
+						nineResult.players[(pIndex + 1) % 2].hand.append(nineResult.players[(pIndex + 1) % 2].points.pop(index))
+						nineResult.players[(pIndex + 1) % 2].hand[-1].frozen = True
+						nineResult.log.append("Player %s returns Player %s's %s to her hand with the %s" %(pIndex, (pIndex+1)%2, target.name(), card.name()))
+						res.append(nineResult)
+					if len(target.jacks) > 0:
+						nineResult = deepcopy(game)
+						nineResult.players[(pIndex + 1) % 2].hand.append(nineResult.players[(pIndex + 1) % 2].points[index].jacks.pop())
+						nineResult.players[pIndex].points.append(nineResult.players[(pIndex + 1) % 2].points.pop(index))
+						nineResult.players[(pIndex + 1) % 2].hand[-1].frozen = True
+						nineResult.log.append("Player %s returns Player %s's %s to her hand with the %s and regains control of the %s" %(pIndex, (pIndex+1)%2, nineResult.players[pIndex].points[-1].name(), card.name(), target.name()))
+						res.append(nineResult)
+			elif queenCount == 1:
+				nineResult = deepcopy(game)
+				for index, target in enumerate(game.players[(pIndex + 1)%2].faceCards):
+					if target.rank == 12:
+						nineResult.players[(pIndex + 1)%2].hand.append(nineResult.players[(pIndex + 1) % 2].faceCards.pop(index))
+						nineResult.players[(pIndex + 1)%2].hand[-1].frozen = True
+						nineResult.log.append("Player %s returns Player %s's %s to her hand with the %s" %(pIndex, (pIndex+1)%2, target.name(), card.name()))
+				res.append(nineResult)
 	return res
 
 
@@ -132,47 +162,53 @@ def findPossibleMoves(originalGame, pIndex):
 
 	# Loop through each card in hand and add all legal moves makeable with that card
 	for i, card in enumerate(game.players[pIndex].hand):
-		if card.rank < 11:
-			# Play points
-			game = deepcopy(originalGame)
-			name = card.name()
-			lenHand = len(game.players[pIndex].hand)
-			game.players[pIndex].points.append(game.players[pIndex].hand.pop(i))
-			game.log.append("Player %s played the %s for points" %(pIndex, card.name()))
-			res.append(deepcopy(game))
+		if not card.frozen:
+			if card.rank < 11:
+				# Play points
+				game = deepcopy(originalGame)
+				name = card.name()
+				lenHand = len(game.players[pIndex].hand)
+				game.players[pIndex].points.append(game.players[pIndex].hand.pop(i))
+				game.log.append("Player %s played the %s for points" %(pIndex, card.name()))
+				res.append(deepcopy(game))
 
-			# Scuttle
-			# For each opponent's point card, if scuttle is legal, add it to list of possible moves
-			for j, pointCard in enumerate(game.players[(pIndex + 1)%2].points):
-				if card.rank > pointCard.rank or (card.rank == pointCard.rank and card.suit > pointCard.suit):
-					scuttleResult = deepcopy(originalGame)
-					scuttleResult.scrap = scuttleResult.scrap + pointCard.jacks #Move jacks to scrap pile
-					pointCard.jacks = [] 
-					scuttleResult.scrap.append(scuttleResult.players[(pIndex + 1) % 2].points.pop(j)) # Move destroyed point card to scrap
-					scuttleResult.scrap.append(scuttleResult.players[pIndex].hand.pop(i)) # Move played card to scrap
-					scuttleResult.log.append("Player %s scuttled the %s with the %s" %(pIndex, pointCard.name(), card.name()))
-					res.append(deepcopy(scuttleResult))
+				# Scuttle
+				# For each opponent's point card, if scuttle is legal, add it to list of possible moves
+				for j, pointCard in enumerate(game.players[(pIndex + 1)%2].points):
+					if card.rank > pointCard.rank or (card.rank == pointCard.rank and card.suit > pointCard.suit):
+						scuttleResult = deepcopy(originalGame)
+						scuttleResult.scrap = scuttleResult.scrap + pointCard.jacks #Move jacks to scrap pile
+						pointCard.jacks = [] 
+						scuttleResult.scrap.append(scuttleResult.players[(pIndex + 1) % 2].points.pop(j)) # Move destroyed point card to scrap
+						scuttleResult.scrap.append(scuttleResult.players[pIndex].hand.pop(i)) # Move played card to scrap
+						scuttleResult.log.append("Player %s scuttled the %s with the %s" %(pIndex, pointCard.name(), card.name()))
+						res.append(deepcopy(scuttleResult))
 
-			# Play as oneOff
-			res += playCardAsOneOff(originalGame, pIndex, i)
+				# Play as oneOff
+				res += playCardAsOneOff(originalGame, pIndex, i)
 
-		# Play king or queen
-		elif card.rank > 11:
-			game = deepcopy(originalGame)
-			game.players[pIndex].faceCards.append(game.players[pIndex].hand.pop(i))
-			game.log.append("Player %s played the %s" %(pIndex, card.name()))
-			res.append(deepcopy(game))
+			# Play king or queen
+			elif card.rank > 11:
+				game = deepcopy(originalGame)
+				game.players[pIndex].faceCards.append(game.players[pIndex].hand.pop(i))
+				game.log.append("Player %s played the %s" %(pIndex, card.name()))
+				res.append(deepcopy(game))
 
-		# Play jack
-		elif card.rank == 11 and game.players[(pIndex + 1) % 2].queenCount() == 0:
-			game = deepcopy(originalGame)
-			# Loop through all possible jack targets and add move for each one
-			for j, pointCard in enumerate(game.players[(pIndex + 1) % 2].points):
-				jackResult = deepcopy(originalGame)
-				jackResult.players[(pIndex + 1) % 2].points[j].jacks.append(jackResult.players[pIndex].hand.pop(i)) # Move jack from hand to the jacks of targeted point card
-				jackResult.players[pIndex].points.append(jackResult.players[(pIndex + 1) % 2].points.pop(j)) # Move stolen point card to this player's points
-				jackResult.log.append("Player %s stole the %s with the %s" %(pIndex, pointCard.name(), card.name()))
-				res.append(deepcopy(jackResult))
+			# Play jack
+			elif card.rank == 11 and game.players[(pIndex + 1) % 2].queenCount() == 0:
+				game = deepcopy(originalGame)
+				# Loop through all possible jack targets and add move for each one
+				for j, pointCard in enumerate(game.players[(pIndex + 1) % 2].points):
+					jackResult = deepcopy(originalGame)
+					jackResult.players[(pIndex + 1) % 2].points[j].jacks.append(jackResult.players[pIndex].hand.pop(i)) # Move jack from hand to the jacks of targeted point card
+					jackResult.players[pIndex].points.append(jackResult.players[(pIndex + 1) % 2].points.pop(j)) # Move stolen point card to this player's points
+					jackResult.log.append("Player %s stole the %s with the %s" %(pIndex, pointCard.name(), card.name()))
+					res.append(deepcopy(jackResult))
+
+	# Unfreeze all the cards in your hand
+	for possibleGame in res:
+		for handCard in possibleGame.players[pIndex].hand:
+			handCard.frozen = False
 
 	# Separate winning moves, losing moves, and the rest
 	win = []
