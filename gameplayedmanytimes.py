@@ -43,7 +43,7 @@ def playCardAsOneOff(originalGame, pIndex, cIndex):
 
 	for game in worlds_where_oneOff_resovlves:
 		# Move all points to scrap
-		if card.rank == 1:
+		if card.rank == 1 and len(game.players[(pIndex + 1) % 2].points) > 0:
 			game.scrap += game.players[0].points
 			game.scrap += game.players[1].points
 			game.players[0].points = []
@@ -67,7 +67,7 @@ def playCardAsOneOff(originalGame, pIndex, cIndex):
 				else:
 					game.log.append("Player %s draws ONE card with the %s" %s(pIndex, card.name()))
 				res.append(game)
-		elif card.rank == 6:
+		elif card.rank == 6 and len(game.players[(pIndex + 1) % 2].faceCards) > 0:
 			game.scrap += game.players[0].faceCards
 			game.scrap += game.players[1].faceCards
 			game.players[0].faceCards = []
