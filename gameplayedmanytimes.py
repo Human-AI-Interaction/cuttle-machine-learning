@@ -139,7 +139,25 @@ def findPossibleMoves(originalGame, pIndex):
 				jackResult.log.append("Player %s stole the %s with the %s" %(pIndex, pointCard.name(), card.name()))
 				res.append(deepcopy(jackResult))
 
-	return res
+	# Separate winning moves, losing moves, and the rest
+	win = []
+	lose = []
+	neither = []
+	for game in res:
+		if game.winner() == pIndex:
+			win.append(game)
+		elif game.players[(pIndex + 1) % 2].couldWinNextTurn():
+			lose.append(game)
+		else:
+			neither.append(game)
+
+
+	if len(win) > 0: # win if possible
+		return win
+	elif len(neither) > 0: #avoid loss if possible
+		return neither
+	else: # play losing move if no other options remain
+		return lose
 
 
 def chooseRandomMove(moves):

@@ -59,6 +59,13 @@ class Player:
 				res = i
 		return res
 
+	def couldWinNextTurn(self):
+		if self.kingCount() == 0:
+			return self.totalPoints() >= 11
+		elif self.kingCount() == 1:
+			return self.totalPoints() >= 4
+		elif self.kingCount() == 2:
+			return True
 	# Returns whether player has won (boolean)
 	def wins(self):
 		if self.kingCount() == 0:
