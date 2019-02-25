@@ -50,15 +50,17 @@ def playCardAsOneOff(originalGame, pIndex, cIndex):
 			game.players[1].points = []
 			game.log.append("Player %s destroys all points with the %s" %(pIndex, card.name()))
 			res.append(game)
+		# Destroy one face card
 		elif card.rank == 2:
 			queenCount = game.players[(pIndex + 1) % 2].queenCount()
 			if queenCount == 0:
+				# Destroy a king or queen
 				for index, target in enumerate(game.players[(pIndex + 1) % 2].faceCards):
 					twoResult = deepcopy(game)
 					twoResult.scrap.append(twoResult.players[(pIndex + 1) % 2].faceCards.pop(index))
 					twoResult.log.append("Player %s destroys Player %s's %s with the %s" %(pIndex, (pIndex+1)%2, target.name(), card.name()))
 					res.append(twoResult)
-				# Destroy a jack to steal a face card
+				# Destroy a jack to steal point card back
 				for index, target in enumerate(game.players[(pIndex + 1) % 2].points):
 					if len(target.jacks) > 0:
 						twoResult = deepcopy(game)
@@ -66,7 +68,7 @@ def playCardAsOneOff(originalGame, pIndex, cIndex):
 						twoResult.players[pIndex].points.append(twoResult.players[(pIndex + 1) % 2].points.pop(index)) #Switch control of point card
 						twoResult.log.append("Player %s destroys Player %s's %s with the %s and regains control of the %s" %(pIndex, (pIndex+1)%2, twoResult.scrap[-1].name(), card.name(), target.name()))
 						res.append(twoResult)
-			# Can only destroy queen if opponent has a queen
+			# If opponent has queen, can only target queen
 			elif queenCount == 1:
 				twoResult = deepcopy(game)
 				for index, target in enumerate(game.players[(pIndex + 1)%2].faceCards):
@@ -75,7 +77,11 @@ def playCardAsOneOff(originalGame, pIndex, cIndex):
 						twoResult.log.append("Player %s destroys Player %s's %s with the %s" %(pIndex, (pIndex+1)%2, target.name(), card.name()))
 				res.append(twoResult)
 		elif card.rank == 3:
-			pass
+			for index, target in enumerate(game.scrap):
+				threeResult = deepcopy(game)
+				threeResult.players[pIndex].hand.append(threeResult.scrap.pop(index))
+				threeResult.log.append("Player %s retrieves the %s from the scrap with the %s" %(pIndex, target.name(), card.name()))
+				res.append(threeResult)
 		# Opponent discards two cards
 		elif card.rank == 4 and len(game.players[(pIndex + 1) % 2].hand) > 0:
 			game.scrap.append(game.players[(pIndex + 1) % 2].hand.pop())
