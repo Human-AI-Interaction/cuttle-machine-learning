@@ -1,10 +1,13 @@
 from gameplayedmanytimes import GamePlayedManyTimes
+from timeit import default_timer as timer
+
+start = timer()
 
 x = 2
-y = 5
+y = 15
 data = GamePlayedManyTimes(x, y)
 
-print("Ran turn %s gameseed %s times" %(x, y))
+
 data.resultingGames[-1].print()
 
 for game in data.resultingGames:
@@ -14,3 +17,6 @@ for game in data.resultingGames:
 print("\nResults:")
 for game in data.resultingGames:
 	print("winner: %s " %(game.winner()))
+
+end = timer()
+print("Ran turn %s gameseed %s times in %ss" %(x, y, end-start))

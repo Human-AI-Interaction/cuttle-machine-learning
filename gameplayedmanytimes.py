@@ -51,7 +51,29 @@ def playCardAsOneOff(originalGame, pIndex, cIndex):
 			game.log.append("Player %s destroys all points with the %s" %(pIndex, card.name()))
 			res.append(game)
 		elif card.rank == 2:
-			pass
+			queenCount = game.players[(pIndex + 1) % 2].queenCount()
+			if queenCount == 0:
+				for index, target in enumerate(game.players[(pIndex + 1) % 2].faceCards):
+					twoResult = deepcopy(game)
+					twoResult.scrap.append(twoResult.players[(pIndex + 1) % 2].faceCards.pop(index))
+					twoResult.log.append("Player %s destroys Player %s's %s with the %s" %(pIndex, (pIndex+1)%2, target.name(), card.name()))
+					res.append(twoResult)
+				# Destroy a jack to steal a face card
+				for index, target in enumerate(game.players[(pIndex + 1) % 2].points):
+					if len(target.jacks) > 0:
+						twoResult = deepcopy(game)
+						twoResult.scrap.append(game.players[(pIndex + 1) % 2].points[index].jacks.pop()) #Move jack to scrap
+						twoResult.players[pIndex].points.append(twoResult.players[(pIndex + 1) % 2].points.pop(index)) #Switch control of point card
+						twoResult.log.append("Player %s destroys Player %s's %s with the %s and regains control of the %s" %(pIndex, (pIndex+1)%2, twoResult.scrap[-1].name(), card.name(), target.name()))
+						res.append(twoResult)
+			# Can only destroy queen if opponent has a queen
+			elif queenCount == 1:
+				twoResult = deepcopy(game)
+				for index, target in enumerate(game.players[(pIndex + 1)%2].faceCards):
+					if target.rank == 12:
+						twoResult.scrap.append(twoResult.players[(pIndex + 1) % 2].faceCards.pop(index))
+						twoResult.log.append("Player %s destroys Player %s's %s with the %s" %(pIndex, (pIndex+1)%2, target.name(), card.name()))
+				res.append(twoResult)
 		elif card.rank == 3:
 			pass
 		elif card.rank == 4:
